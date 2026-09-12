@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horario Mecatrónica</title>
+    <style>
+        :root {
+            --bg-color: #0F0F10;
+            --primary-color: #800F11;
+            --card-color: #1E1E22;
+            --container-bg: #1B1B1E;
+            --current-class-bg: #520B0D;
+            --text-white: #FFFFFF;
+            --text-grey: #9E9E9E;
+            --accent-red: #FF6B6B;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            height: 100vh;
+            max-height: 850px;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: var(--bg-color);
+        }
+
+        header h1 {
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 1.1px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-white);
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        .content {
+            padding: 0 20px 20px 20px;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .sim-box {
+            background-color: var(--container-bg);
+            border: 1.5px solid var(--primary-color);
+            border-radius: 16px;
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .sim-box h2 {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .sim-box p {
+            font-size: 14px;
+            color: var(--text-grey);
+        }
+
+        .card-current {
+            background-color: var(--current-class-bg);
+            border-radius: 20px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card-next {
+            background-color: var(--card-color);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .card-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1.2px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .card-title {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .card-sub {
+            font-size: 13px;
+            color: var(--text-grey);
+        }
+
+        .spacer {
+            flex: 1;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: var(--text-white);
+            border: none;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn-secondary {
+            background-color: var(--card-color);
+        }
+
+        /* Modal */
+        .modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background-color: var(--card-color);
+            padding: 24px;
+            border-radius: 16px;
+            width: 85%;
+            max-width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sub-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 50;
+        }
+
+        .sub-screen.active {
+            transform: translateX(0);
+        }
+
+        .list-container {
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .class-item {
+            background-color: var(--card-color);
+            border-radius: 16px;
+            padding: 14px 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .class-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .class-info h3 {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .class-info p.time {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-red);
+            margin-bottom: 2px;
+        }
+
+        .class-info p.prof {
+            font-size: 11px;
+            color: var(--text-grey);
+        }
+
+        .completed h3 {
+            color: var(--text-grey) !important;
+            text-decoration: line-through;
+        }
+        .completed p.time {
+            color: #555 !important;
+        }
+
+        /* Tabs semana */
+        .tabs {
+            display: flex;
+            background-color: var(--bg-color);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            font-size: 14px;
+            color: var(--text-grey);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            color: var(--text-white);
+            border-bottom-color: var(--primary-color);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container" id="app">
+    <!-- Pantalla Principal -->
+    <header>
+        <h1>INGENIERÍA MECATRÓNICA</h1>
+        <button class="icon-btn" onclick="abrirCreditos()">👤</button>
+    </header>
+
+    <div class="content">
+        <div class="sim-box" onclick="cambiarFechaSimulada()">
+            <div>
+                <h2 id="lblDia">LUNES</h2>
+                <p id="lblHora">12:00 hrs</p>
+            </div>
+            <span style="font-size: 24px;">⚙️</span>
+        </div>
+
+        <div class="card-current">
+            <div class="card-label"><span>🟢</span> CLASE EN CURSO</div>
+            <div class="card-title" id="lblClaseActual">Libre / Sin Actividad</div>
+            <div class="card-sub" id="lblInfoActual" style="display:none;"></div>
+        </div>
+
+        <div class="card-next">
+            <div class="card-label"><span>⏰</span> PRÓXIMA CLASE</div>
+            <div class="card-title" id="lblClaseProxima" style="font-size: 18px;">Sin más clases por hoy</div>
+            <div class="card-sub" id="lblInfoProxima" style="display:none;"></div>
+        </div>
+
+        <div class="spacer"></div>
+
+        <button class="btn" onclick="abrirHorarioHoy()">
+            📅 Horario de Hoy
+        </button>
+        <button class="btn btn-secondary" onclick="abrirHorarioSemanal()">
+            📊 Vista Semanal Completa
+        </button>
+    </div>
+
+    <!-- Pantalla Horario del Día -->
+    <div id="pantallaDia" class="sub-screen">
+        <header>
+            <button class="icon-btn" onclick="cerrarSubPantallas()">←</button>
+            <h1 id="tituloHorarioDia">Horario: Lunes</h1>
+            <div style="width: 24px;"></div>
+        </header>
+        <div class="list-container" id="listaClasesDia"></div>
+    </div>
+
+    <!-- Pantalla Horario Semanal -->
+    <div id="pantallaSemana" class="sub-screen">
+        <header>
+            <button class="icon-btn" onclick="cerrarSubPantallas()">←</button>
+            <h1>Horario Semanal</h1>
+            <div style="width: 24px;"></div>
+        </header>
+        <div class="tabs">
+            <div class="tab active" onclick="cambiarTabSemana(1)">Lun</div>
+            <div class="tab" onclick="cambiarTabSemana(2)">Mar</div>
+            <div class="tab" onclick="cambiarTabSemana(3)">Mié</div>
+            <div class="tab" onclick="cambiarTabSemana(4)">Jue</div>
+            <div class="tab" onclick="cambiarTabSemana(5)">Vie</div>
+        </div>
+        <div class="list-container" id="listaClasesSemana"></div>
+    </div>
+
+    <!-- Modal Créditos -->
+    <div class="modal" id="modalCreditos" onclick="cerrarCreditosFuera(event)">
+        <div class="modal-content">
+            <div class="modal-title">
+                <span>🛡️</span> Créditos del Desarrollador
+            </div>
+            <div style="font-size: 12px; color: var(--text-grey);">Alumno:</div>
+            <div style="font-size: 15px; font-weight: bold;">Héctor Caleb Abarca Escutia</div>
+            <div style="font-size: 12px; color: var(--text-grey); margin-top: 4px;">Carrera:</div>
+            <div style="font-size: 14px;">Ingeniería Mecatrónica</div>
+            <div style="font-size: 12px; color: var(--text-grey); margin-top: 4px;">Grupo / Aula:</div>
+            <div style="font-size: 14px;">111-B</div>
+            <button class="btn" style="padding: 10px; margin-top: 10px;" onclick="cerrarCreditos()">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Modal Detalle Clase Semana -->
+    <div class="modal" id="modalDetalleClase" onclick="cerrarDetalleFuera(event)">
+        <div class="modal-content">
+            <div class="modal-title" id="detMateria">Materia</div>
+            <div style="font-size: 14px; color: var(--text-grey); line-height: 1.4;" id="detContenido"></div>
+            <button class="btn" style="padding: 10px; margin-top: 10px;" onclick="cerrarDetalle()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const horarioSemanal = {
+        1: [
+            { materia: 'Química', aula: 'LQ', horario: '12:00 - 13:00', catedratico: 'M.C.I.B. SOLEDAD ESTHER MALDONADO BRAVO' },
+            { materia: 'Metrología y Normalización', aula: 'G10', horario: '13:00 - 14:00', catedratico: 'ING. COSME HERNANDEZ LINARES' },
+            { materia: 'Taller de Ética', aula: 'G10', horario: '14:00 - 15:00', catedratico: 'M.T.I. MARIA DE LOS ANGELES PELAYO VAQUERO' },
+            { materia: 'Fundamentos de Investigación', aula: 'AI', horario: '15:00 - 16:00', catedratico: 'LI. SERGIO PELAYO VAQUERO' },
+            { materia: 'Dibujo Asistido por PC', aula: 'A2', horario: '16:00 - 17:00', catedratico: 'IEME MIGUEL REYES FISCAL' },
+            { materia: 'Inglés Módulo 1', aula: 'G7', horario: '17:00 - 18:00', catedratico: 'IMEC DOCENTE MECA 02' }
+        ],
+        2: [
+            { materia: 'Cálculo Diferencial', aula: 'G8', horario: '12:00 - 13:00', catedratico: 'DRA. VIOLETA ALEJANDRA BASTIAN LIMA' },
+            { materia: 'Dibujo Asistido por PC', aula: 'I1', horario: '14:00 - 15:00', catedratico: 'IEME MIGUEL REYES FISCAL' },
+            { materia: 'Metrología y Normalización', aula: 'D2', horario: '15:00 - 16:00', catedratico: 'ING. COSME HERNANDEZ LINARES' },
+            { materia: 'Fundamentos de Investigación', aula: 'AI', horario: '16:00 - 17:00', catedratico: 'LI. SERGIO PELAYO VAQUERO' },
+            { materia: 'Inglés Módulo 1', aula: 'G7', horario: '17:00 - 18:00', catedratico: 'IMEC DOCENTE MECA 02' }
+        ],
+        3: [
+            { materia: 'Cálculo Diferencial', aula: 'G8', horario: '11:00 - 13:00', catedratico: 'DRA. VIOLETA ALEJANDRA BASTIAN LIMA' },
+            { materia: 'Química', aula: 'G06', horario: '13:00 - 14:00', catedratico: 'M.C.I.B. SOLEDAD ESTHER MALDONADO BRAVO' },
+            { materia: 'Tutoría', aula: 'LCIM', horario: '14:00 - 15:00', catedratico: 'DR. GUILLERMO REYES MORALES' },
+            { materia: 'Fundamentos de Investigación', aula: 'AI', horario: '15:00 - 16:00', catedratico: 'LI. SERGIO PELAYO VAQUERO' },
+            { materia: 'Taller de Ética', aula: 'A9', horario: '16:00 - 17:00', catedratico: 'M.T.I. MARIA DE LOS ANGELES PELAYO VAQUERO' },
+            { materia: 'Inglés Módulo 1', aula: 'G7', horario: '17:00 - 18:00', catedratico: 'IMEC DOCENTE MECA 02' },
+            { materia: 'Metrología y Normalización', aula: 'E1', horario: '18:00 - 19:00', catedratico: 'ING. COSME HERNANDEZ LINARES' }
+        ],
+        4: [
+            { materia: 'Cálculo Diferencial', aula: 'G8', horario: '11:00 - 12:00', catedratico: 'DRA. VIOLETA ALEJANDRA BASTIAN LIMA' },
+            { materia: 'Química', aula: 'G06', horario: '13:00 - 14:00', catedratico: 'M.C.I.B. SOLEDAD ESTHER MALDONADO BRAVO' },
+            { materia: 'Dibujo Asistido por PC', aula: 'A2', horario: '14:00 - 15:00', catedratico: 'IEME MIGUEL REYES FISCAL' },
+            { materia: 'Taller de Ética', aula: 'A10', horario: '15:00 - 16:00', catedratico: 'M.T.I. MARIA DE LOS ANGELES PELAYO VAQUERO' },
+            { materia: 'Metrología y Normalización', aula: 'G7', horario: '16:00 - 17:00', catedratico: 'ING. COSME HERNANDEZ LINARES' },
+            { materia: 'Inglés Módulo 1', aula: 'G7', horario: '17:00 - 18:00', catedratico: 'IMEC DOCENTE MECA 02' }
+        ],
+        5: [
+            { materia: 'Cálculo Diferencial', aula: 'G8', horario: '10:00 - 11:00', catedratico: 'DRA. VIOLETA ALEJANDRA BASTIAN LIMA' },
+            { materia: 'Taller de Ética', aula: 'A9', horario: '13:00 - 14:00', catedratico: 'M.T.I. MARIA DE LOS ANGELES PELAYO VAQUERO' },
+            { materia: 'Dibujo Asistido por PC', aula: 'G10', horario: '14:00 - 15:00', catedratico: 'IEME MIGUEL REYES FISCAL' },
+            { materia: 'Química', aula: 'G01', horario: '15:00 - 16:00', catedratico: 'M.C.I.B. SOLEDAD ESTHER MALDONADO BRAVO' },
+            { materia: 'Fundamentos de Investigación', aula: 'AI', horario: '16:00 - 17:00', catedratico: 'LI. SERGIO PELAYO VAQUERO' },
+            { materia: 'Inglés Módulo 1', aula: 'G7', horario: '17:00 - 18:00', catedratico: 'IMEC DOCENTE MECA 02' }
+        ]
+    };
+
+    const nombresDias = { 1: 'LUNES', 2: 'MARTES', 3: 'MIÉRCOLES', 4: 'JUEVES', 5: 'VIERNES', 6: 'SÁBADO', 7: 'DOMINGO' };
+
+    let fechaSimulada = new Date();
+    // Ajustar si cae en fin de semana para que luzca bien por defecto (ej. Lunes 12:00)
+    if(fechaSimulada.getDay() === 0 || fechaSimulada.getDay() === 6) {
+        // Forzar a Lunes para demostración si es fin de semana
+    }
+
+    function actualizarUIPrincipal() {
+        let dia = fechaSimulada.getDay();
+        if (dia === 0) dia = 7; // Domingo
+        let hora = fechaSimulada.getHours();
+        let minuto = fechaSimulada.getMinutes();
+
+        document.getElementById('lblDia').innerText = nombresDias[dia] || 'FIN DE SEMANA';
+        document.getElementById('lblHora').innerText = `${String(hora).padStart(2, '0')}:${String(minuto).padStart(2, '0')} hrs`;
+
+        // Calcular clase actual y próxima
+        let claseActual = null;
+        let proximaClase = null;
+
+        if (horarioSemanal[dia]) {
+            for (let c of horarioSemanal[dia]) {
+                let partes = c.horario.split(' - ');
+                let inicio = parseInt(partes[0].split(':')[0]);
+                let fin = parseInt(partes[1].split(':')[0]);
+
+                if (hora >= inicio && hora < fin) {
+                    claseActual = c;
+                }
+                if (inicio > hora && !proximaClase) {
+                    proximaClase = c;
+                }
+            }
+        }
+
+        // Render actual
+        if (claseActual) {
+            document.getElementById('lblClaseActual').innerText = claseActual.materia;
+            let info = document.getElementById('lblInfoActual');
+            info.style.display = 'block';
+            info.innerText = `Aula ${claseActual.aula} • ${claseActual.horario}`;
+        } else {
+            document.getElementById('lblClaseActual').innerText = 'Libre / Sin Actividad';
+            document.getElementById('lblInfoActual').style.display = 'none';
+        }
+
+        // Render próxima
+        if (proximaClase) {
+            document.getElementById('lblClaseProxima').innerText = proximaClase.materia;
+            let infoP = document.getElementById('lblInfoProxima');
+            infoP.style.display = 'block';
+            infoP.innerText = `Aula ${proximaClase.aula} • ${proximaClase.horario}`;
+        } else {
+            document.getElementById('lblClaseProxima').innerText = 'Sin más clases por hoy';
+            document.getElementById('lblInfoProxima').style.display = 'none';
+        }
+    }
+
+    function cambiarFechaSimulada() {
+        let nuevaHora = prompt("Ingresa la hora simulada (Formato 24h, ej: 14):", fechaSimulada.getHours());
+        if(nuevaHora !== null && !isNaN(nuevaHora)) {
+            fechaSimulada.setHours(parseInt(nuevaHora));
+            actualizarUIPrincipal();
+        }
+    }
+
+    function abrirCreditos() { document.getElementById('modalCreditos').classList.add('active'); }
+    function cerrarCreditos() { document.getElementById('modalCreditos').classList.remove('active'); }
+    function cerrarCreditosFuera(e) { if(e.target.id === 'modalCreditos') cerrarCreditos(); }
+
+    function abrirHorarioHoy() {
+        let dia = fechaSimulada.getDay();
+        if(dia === 0 || dia > 5) dia = 1; // Default a Lunes si es fin de semana
+        let clases = horarioSemanal[dia] || [];
+        
+        document.getElementById('tituloHorarioDia').innerText = `Horario: ${nombresDias[dia]}`;
+        let contenedor = document.getElementById('listaClasesDia');
+        contenedor.innerHTML = '';
+
+        if(clases.length === 0) {
+            contenedor.innerHTML = '<div style="color:var(--text-grey); text-align:center; margin-top:40px;">Sin clases programadas.</div>';
+        } else {
+            clases.forEach((c, idx) => {
+                contenedor.innerHTML += `
+                    <div class="class-item" id="item-${idx}">
+                        <input type="checkbox" onchange="toggleTachado(${idx})">
+                        <div class="class-info class-text-${idx}">
+                            <h3>${c.materia}</h3>
+                            <p class="time">Aula ${c.aula} • ${c.horario}</p>
+                            <p class="prof">${c.catedratico}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        document.getElementById('pantallaDia').classList.add('active');
+    }
+
+    function toggleTachado(idx) {
+        let item = document.getElementById(`item-${idx}`);
+        item.classList.toggle('completed');
+    }
+
+    function abrirHorarioSemanal() {
+        document.getElementById('pantallaSemana').classList.add('active');
+        cambiarTabSemana(1);
+    }
+
+    function cambiarTabSemana(diaNum) {
+        document.querySelectorAll('.tab').forEach((t, idx) => {
+            if((idx + 1) === diaNum) t.classList.add('active');
+            else t.classList.remove('active');
+        });
+
+        let clases = horarioSemanal[diaNum] || [];
+        let contenedor = document.getElementById('listaClasesSemana');
+        contenedor.innerHTML = '';
+
+        clases.forEach(c => {
+            contenedor.innerHTML += `
+                <div class="class-item" style="cursor: pointer;" onclick="verDetalleClase('${c.materia}', '${c.aula}', '${c.horario}', '${c.catedratico}')">
+                    <div class="class-info" style="flex:1;">
+                        <h3>${c.materia}</h3>
+                        <p class="time" style="color:var(--text-grey);">Aula: ${c.aula} | Hora: ${c.horario}</p>
+                    </div>
+                    <span style="color:var(--text-grey);">ℹ️</span>
+                </div>
+            `;
+        });
+    }
+
+    function verDetalleClase(materia, aula, horario, catedratico) {
+        document.getElementById('detMateria').innerText = materia;
+        document.getElementById('detContenido').innerHTML = `Aula: ${aula}<br>Hora: ${horario}<br><br><strong>Catedrático:</strong><br>${catedratico}`;
+        document.getElementById('modalDetalleClase').classList.add('active');
+    }
+
+    function cerrarDetalle() { document.getElementById('modalDetalleClase').classList.remove('active'); }
+    function cerrarDetalleFuera(e) { if(e.target.id === 'modalDetalleClase') cerrarDetalle(); }
+
+    function cerrarSubPantallas() {
+        document.getElementById('pantallaDia').classList.remove('active');
+        document.getElementById('pantallaSemana').classList.remove('active');
+    }
+
+    // Inicializar UI
+    actualizarUIPrincipal();
+</script>
+</body>
+</html>
