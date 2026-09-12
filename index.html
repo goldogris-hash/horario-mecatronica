@@ -202,7 +202,6 @@
             gap: 10px;
         }
 
-        /* Estilos específicos para el selector de fecha/hora modal */
         .form-group {
             display: flex;
             flex-direction: column;
@@ -336,7 +335,7 @@
     </header>
 
     <div class="content">
-        <div class="sim-box" onclick="abrirSelectorFechaHora()">
+        <div class="sim-box" onclick="solicitarPassword()">
             <div>
                 <h2 id="lblDia">LUNES</h2>
                 <p id="lblHora">12:00 hrs</p>
@@ -391,6 +390,23 @@
             <div class="tab" onclick="cambiarTabSemana(5)">Vie</div>
         </div>
         <div class="list-container" id="listaClasesSemana"></div>
+    </div>
+
+    <!-- Modal Contraseña -->
+    <div class="modal" id="modalPassword" onclick="cerrarPassFuera(event)">
+        <div class="modal-content">
+            <div class="modal-title">
+                <span>🔒</span> Contraseña Requerida
+            </div>
+            <div class="form-group">
+                <label>Ingresa la clave de acceso</label>
+                <input type="password" id="inputPassword" placeholder="Contraseña...">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" style="padding: 10px;" onclick="cerrarPassword()">Cancelar</button>
+                <button class="btn" style="padding: 10px;" onclick="verificarPassword()">Entrar</button>
+            </div>
+        </div>
     </div>
 
     <!-- Modal Configurar Día, Hora y Minutos -->
@@ -506,7 +522,7 @@
 
     function actualizarUIPrincipal() {
         let dia = fechaSimulada.getDay();
-        if (dia === 0) dia = 7; // Domingo
+        if (dia === 0) dia = 7;
         let hora = fechaSimulada.getHours();
         let minuto = fechaSimulada.getMinutes();
 
@@ -552,7 +568,32 @@
         }
     }
 
-    // Funciones del nuevo modal avanzado de Fecha y Hora
+    // Funciones de validación por contraseña
+    function solicitarPassword() {
+        document.getElementById('inputPassword').value = '';
+        document.getElementById('modalPassword').classList.add('active');
+    }
+
+    function cerrarPassword() {
+        document.getElementById('modalPassword').classList.remove('active');
+    }
+
+    function cerrarPassFuera(e) {
+        if(e.target.id === 'modalPassword') cerrarPassword();
+    }
+
+    function verificarPassword() {
+        let pass = document.getElementById('inputPassword').value;
+        if (pass === 'hca65') {
+            cerrarPassword();
+            abrirSelectorFechaHora();
+        } else {
+            alert("Contraseña incorrecta.");
+            document.getElementById('inputPassword').value = '';
+        }
+    }
+
+    // Funciones del selector avanzado de Fecha y Hora
     function abrirSelectorFechaHora() {
         let diaActual = fechaSimulada.getDay();
         if (diaActual === 0) diaActual = 7;
@@ -586,8 +627,6 @@
             return;
         }
 
-        // Ajustar el día de la semana manteniendo un objeto Date real en JS
-        // (En JS getDay(): 0 es Domingo, 1 es Lunes... 6 es Sábado)
         let jsDayTarget = nuevoDia === 7 ? 0 : nuevoDia;
         let diaActualJS = fechaSimulada.getDay();
         let diferenciaDias = jsDayTarget - diaActualJS;
