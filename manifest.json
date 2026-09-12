@@ -1,0 +1,20 @@
+{
+  "name": "Horario Mecatrónica",
+  "short_name": "Horario Meca",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0F0F10",
+  "theme_color": "#800F11",
+  "icons": [
+    {
+      "src": "logo-mecatronica.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logo-mecatronica.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
