@@ -164,7 +164,7 @@
             background-color: var(--card-color);
         }
 
-        /* Modal */
+        /* Modales generales */
         .modal {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -200,6 +200,39 @@
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        /* Estilos específicos para el selector de fecha/hora modal */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            color: var(--text-grey);
+            font-weight: bold;
+        }
+
+        .form-group select, .form-group input {
+            background-color: var(--container-bg);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--text-white);
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-group select:focus, .form-group input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
         }
 
         .sub-screen {
@@ -303,7 +336,7 @@
     </header>
 
     <div class="content">
-        <div class="sim-box" onclick="cambiarFechaSimulada()">
+        <div class="sim-box" onclick="abrirSelectorFechaHora()">
             <div>
                 <h2 id="lblDia">LUNES</h2>
                 <p id="lblHora">12:00 hrs</p>
@@ -358,6 +391,43 @@
             <div class="tab" onclick="cambiarTabSemana(5)">Vie</div>
         </div>
         <div class="list-container" id="listaClasesSemana"></div>
+    </div>
+
+    <!-- Modal Configurar Día, Hora y Minutos -->
+    <div class="modal" id="modalSelectorTiempo" onclick="cerrarSelectorFuera(event)">
+        <div class="modal-content">
+            <div class="modal-title">
+                <span>⚙️</span> Simular Día y Hora
+            </div>
+            
+            <div class="form-group">
+                <label>Día de la Semana</label>
+                <select id="selectDia">
+                    <option value="1">Lunes</option>
+                    <option value="2">Martes</option>
+                    <option value="3">Miércoles</option>
+                    <option value="4">Jueves</option>
+                    <option value="5">Viernes</option>
+                    <option value="6">Sábado</option>
+                    <option value="7">Domingo</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Hora (0 - 23)</label>
+                <input type="number" id="inputHora" min="0" max="23" placeholder="Ej. 14">
+            </div>
+
+            <div class="form-group">
+                <label>Minutos (0 - 59)</label>
+                <input type="number" id="inputMinuto" min="0" max="59" placeholder="Ej. 30">
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" style="padding: 10px;" onclick="cerrarSelectorFechaHora()">Cancelar</button>
+                <button class="btn" style="padding: 10px;" onclick="guardarFechaHoraSimulada()">Aplicar</button>
+            </div>
+        </div>
     </div>
 
     <!-- Modal Créditos -->
@@ -433,10 +503,6 @@
     const nombresDias = { 1: 'LUNES', 2: 'MARTES', 3: 'MIÉRCOLES', 4: 'JUEVES', 5: 'VIERNES', 6: 'SÁBADO', 7: 'DOMINGO' };
 
     let fechaSimulada = new Date();
-    // Ajustar si cae en fin de semana para que luzca bien por defecto (ej. Lunes 12:00)
-    if(fechaSimulada.getDay() === 0 || fechaSimulada.getDay() === 6) {
-        // Forzar a Lunes para demostración si es fin de semana
-    }
 
     function actualizarUIPrincipal() {
         let dia = fechaSimulada.getDay();
@@ -447,7 +513,6 @@
         document.getElementById('lblDia').innerText = nombresDias[dia] || 'FIN DE SEMANA';
         document.getElementById('lblHora').innerText = `${String(hora).padStart(2, '0')}:${String(minuto).padStart(2, '0')} hrs`;
 
-        // Calcular clase actual y próxima
         let claseActual = null;
         let proximaClase = null;
 
@@ -466,7 +531,6 @@
             }
         }
 
-        // Render actual
         if (claseActual) {
             document.getElementById('lblClaseActual').innerText = claseActual.materia;
             let info = document.getElementById('lblInfoActual');
@@ -477,7 +541,6 @@
             document.getElementById('lblInfoActual').style.display = 'none';
         }
 
-        // Render próxima
         if (proximaClase) {
             document.getElementById('lblClaseProxima').innerText = proximaClase.materia;
             let infoP = document.getElementById('lblInfoProxima');
@@ -489,12 +552,52 @@
         }
     }
 
-    function cambiarFechaSimulada() {
-        let nuevaHora = prompt("Ingresa la hora simulada (Formato 24h, ej: 14):", fechaSimulada.getHours());
-        if(nuevaHora !== null && !isNaN(nuevaHora)) {
-            fechaSimulada.setHours(parseInt(nuevaHora));
-            actualizarUIPrincipal();
+    // Funciones del nuevo modal avanzado de Fecha y Hora
+    function abrirSelectorFechaHora() {
+        let diaActual = fechaSimulada.getDay();
+        if (diaActual === 0) diaActual = 7;
+        
+        document.getElementById('selectDia').value = diaActual;
+        document.getElementById('inputHora').value = fechaSimulada.getHours();
+        document.getElementById('inputMinuto').value = fechaSimulada.getMinutes();
+
+        document.getElementById('modalSelectorTiempo').classList.add('active');
+    }
+
+    function cerrarSelectorFechaHora() {
+        document.getElementById('modalSelectorTiempo').classList.remove('active');
+    }
+
+    function cerrarSelectorFuera(e) {
+        if(e.target.id === 'modalSelectorTiempo') cerrarSelectorFechaHora();
+    }
+
+    function guardarFechaHoraSimulada() {
+        let nuevoDia = parseInt(document.getElementById('selectDia').value);
+        let nuevaHora = parseInt(document.getElementById('inputHora').value);
+        let nuevoMinuto = parseInt(document.getElementById('inputMinuto').value);
+
+        if (isNaN(nuevaHora) || nuevaHora < 0 || nuevaHora > 23) {
+            alert("Por favor ingresa una hora válida entre 0 y 23.");
+            return;
         }
+        if (isNaN(nuevoMinuto) || nuevoMinuto < 0 || nuevoMinuto > 59) {
+            alert("Por favor ingresa minutos válidos entre 0 y 59.");
+            return;
+        }
+
+        // Ajustar el día de la semana manteniendo un objeto Date real en JS
+        // (En JS getDay(): 0 es Domingo, 1 es Lunes... 6 es Sábado)
+        let jsDayTarget = nuevoDia === 7 ? 0 : nuevoDia;
+        let diaActualJS = fechaSimulada.getDay();
+        let diferenciaDias = jsDayTarget - diaActualJS;
+
+        fechaSimulada.setDate(fechaSimulada.getDate() + diferenciaDias);
+        fechaSimulada.setHours(nuevaHora);
+        fechaSimulada.setMinutes(nuevoMinuto);
+
+        cerrarSelectorFechaHora();
+        actualizarUIPrincipal();
     }
 
     function abrirCreditos() { document.getElementById('modalCreditos').classList.add('active'); }
@@ -503,7 +606,7 @@
 
     function abrirHorarioHoy() {
         let dia = fechaSimulada.getDay();
-        if(dia === 0 || dia > 5) dia = 1; // Default a Lunes si es fin de semana
+        if(dia === 0 || dia > 5) dia = 1;
         let clases = horarioSemanal[dia] || [];
         
         document.getElementById('tituloHorarioDia').innerText = `Horario: ${nombresDias[dia]}`;
